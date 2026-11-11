@@ -2,36 +2,35 @@
 
 ## Tools
 
-- [Vitest](https://vitest.dev/) runs the suites in `test/`.
-- Coverage is collected with V8 (`@vitest/coverage-v8`) over `src/`.
+- [Vitest](https://vitest.dev/) runs `test/index.test.ts`.
+- The test file uses `InMemoryTransport.createLinkedPair()` and `Client` from `@modelcontextprotocol/sdk`, and `z` from `zod` for one schema demonstration.
 
 ## Commands
 
 ```sh
-npm test            # vitest run --coverage
-npx vitest          # watch mode while developing
-npm run check       # every gate, including tests
+npx vitest run test/index.test.ts
+npx vitest
 ```
 
 ## Rules
 
-- Coverage must stay at or above 80 % for lines, branches, functions and statements (`vitest.config.ts`).
-  Lowering the thresholds is not allowed.
-- Test through the public entry point (`src/index.ts`) and assert observable behavior: return values,
-  thrown errors and their messages.
-- Each bug fix adds a test that fails without the fix.
-- Tests are deterministic: no network, no real clock or randomness without injection, no shared state between
-  tests. Temporary files go to the OS temp directory and are removed by the test.
+- Tests import from `../src/index.js` and assert observable behavior: returned tool lists, returned `CallToolResult` objects, thrown `GatewayError` codes/messages, and emitted `onEvent` payloads.
+- Timeout tests inject a `ManualTimers` implementation of `Timers` and advance it explicitly.
+- Upstreams are `vi.fn` mocks created by `createMockUpstream`; no network is used.
 
 ## Tiers
 
-- Local tier (every gate run, coverage measured here): unit and property tests, plus conformance on small
-  fixtures kept in the repository.
-- CI tier: conformance that needs an external tool or a download. Name them `test/<name>.conformance.test.ts`; `vitest.config.ts` excludes them locally
-  (unless `FABRICA_CI=1`). The CI `conformance` job sets `FABRICA_CI=1` and runs the full suite. Tools are installed
-  by the optional `ci/conformance-setup.sh` (bash, CI only; verify every download against a pinned SHA-256), and
-  tagged tests skip cleanly when their tool is missing.
+The repository contains one local test file, `test/index.test.ts`. It has no separate conformance tier or external-tool fixtures.
 
 ## Reports
 
-Coverage reports are written to `coverage/` (text summary and `lcov`). The folder is ignored by git.
+No coverage reporting configuration is present in the reviewed code.
+
+## What `test/index.test.ts` covers
+
+- Tool visibility: allow globs, deny globs, unknown clients, inherited client IDs, sorted results, and a deny glob with an empty allow list.
+- Calls: forwarding the original tool name and arguments, returning the upstream result unchanged, rejecting hidden/non-existent tools without calling the upstream, and mapping `unknown_tool` to JSON-RPC `-32602` through an SDK `Client`.
+- Failure handling: sanitising upstream exceptions, non-serialisable results, and events that contain no arguments or results.
+- Timeouts: aborting the upstream signal, keeping the timeout authoritative when the upstream rejects on abort, ignoring a late result, and timing out a hung upstream during discovery.
+- Limits and validation: `maxResultBytes`, invalid server names, too many globs, overlong globs, invalid namespaced tool names, and malformed upstream `listTools` payloads.
+- Namespacing and refresh: collisions between servers, recovery after an upstream failure, and a schema declared with `zod` in a test upstream.

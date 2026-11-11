@@ -1,17 +1,15 @@
 # @trysac/mcp-aggregator-gateway
 
-> MCP gateway that aggregates the tools of several upstream MCP servers under namespaced names, with per-client allow and deny globs, timeouts and sanitised errors TypeScript library for Node.js 20+, published as ES modules with type declarations. MIT.
+> MCP gateway that aggregates the tools of several upstream MCP servers under namespaced names, with per-client allow and deny globs, timeouts and sanitised errors.
 
 ## Docs
 
-- [README](README.md): problem, installation and usage example
-- [AGENTS.md](AGENTS.md): commands, folder map, conventions and limits for contributors and agents
+- [README](README.md): problem, installation, usage example and API
 - [Architecture](docs/ARCHITECTURE.md): modules and boundaries
-- [Testing](docs/TESTING.md): how tests and coverage work
-- [Decisions](docs/decisions/0001-record-architecture-decisions.md): architecture decision records
+- [Testing](docs/TESTING.md): the test file and what it covers
+- [Security](docs/SECURITY.md): threat model
 
 ## Optional
 
-- [Stack](docs/STACK.md): tools used and discarded
+- [Stack](docs/STACK.md): tools used
 - [Project record](docs/PROJECT.md): objective, scope, timeline and effort metrics
-- [Changelog](CHANGELOG.md)

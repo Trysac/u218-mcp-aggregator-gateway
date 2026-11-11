@@ -9,4 +9,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Added MCP aggregator gateway with namespaced tools, per-client allow/deny policies, timeouts, sanitised errors, and a low-level MCP server endpoint.
 - Initial project structure from the factory utility template.

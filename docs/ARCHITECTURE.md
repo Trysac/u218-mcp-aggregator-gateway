@@ -1,30 +1,11 @@
 # Architecture
 
-## Overview
+The public entry point is `src/index.ts`. `Gateway` stores upstreams, policy, timeout, max result size, timers, and event callback. The constructor validates server names, client policy arrays, glob count/length, and positive limits, throwing `GatewayError` with code `invalid_config`.
 
-`@trysac/mcp-aggregator-gateway` is a small, dependency-free TypeScript library published to npm as ES modules with type
-declarations. MCP gateway that aggregates the tools of several upstream MCP servers under namespaced names, with per-client allow and deny globs, timeouts and sanitised errors
+Tool lists are cached in `Map<string, Tool[]>`. `loadTools` deduplicates concurrent refreshes with `refreshPromise`; `performRefresh` calls `listTools()` on every upstream concurrently with `Promise.allSettled` and a per-upstream timeout. A failed or malformed upstream is omitted and emits `upstream_unavailable`. Tools are namespaced as `<server>__<tool>`; entries without a string name or with a namespaced name outside `^[A-Za-z0-9_.-]{1,128}$` are skipped and emit `skipped_tool`.
 
-## Modules
+Policy evaluation is pure: a namespaced name is visible when the client exists via `Object.hasOwn`, at least one allow glob matches, and no deny glob matches. Globs are anchored and case-sensitive with `*` matching any sequence, including the separator.
 
-| Module | Responsibility |
-|---|---|
-| `src/index.ts` | Public API. Everything consumers import is exported from here. |
+`callTool` checks visibility, splits the namespaced name at the first `__`, verifies the original tool is in the cached list for that server, and invokes the upstream with the original tool name, arguments and an `AbortSignal`. The upstream promise races the injected timer. On timeout the signal aborts and the timeout outcome wins; a late result is ignored. Results are JSON-serialised for size checking; non-serialisable results and upstream exceptions return a fixed error result.
 
-Add a row when you add a module. Internal modules are not re-exported unless they are part of the public API.
-
-## Boundaries
-
-- No runtime dependencies by default; any addition is justified in [STACK.md](STACK.md).
-- No I/O at import time. Functions are pure unless their documentation says otherwise.
-- Errors are thrown as built-in error types (`TypeError`, `RangeError`) with actionable messages.
-
-## Build and distribution
-
-`npm run build` compiles `src/` to `dist/` with `tsconfig.build.json`. Only `dist/` is published
-(`files` in `package.json`).
-
-## Decisions
-
-Architectural decisions are recorded in [decisions/](decisions/), starting with
-[0001](decisions/0001-record-architecture-decisions.md).
+`connect(clientId)` creates a low-level SDK `Server` named `mcp-aggregator-gateway` with `capabilities: { tools: {} }`. It registers `tools/list` and `tools/call`; `GatewayError` with code `unknown_tool` is mapped to `McpError(ErrorCode.InvalidParams)`.
