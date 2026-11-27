@@ -4,9 +4,15 @@ An MCP gateway that aggregates tools from multiple upstream MCP servers under na
 
 ## Installation
 
-```bash
-npm install @trysac/mcp-aggregator-gateway
+Not published to npm yet. Build it from a clone, then install it from the local path:
+
+```sh
+git clone https://github.com/Trysac/u218-mcp-aggregator-gateway.git
+cd u218-mcp-aggregator-gateway && npm ci && npm run build
+cd ../your-project && npm install ../u218-mcp-aggregator-gateway
 ```
+
+Imports keep the package name: `import { ... } from "@trysac/mcp-aggregator-gateway"`.
 
 ## Usage
 
